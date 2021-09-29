@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"juuri/options"
+	"juuri/output"
 	"juuri/query"
 	"os"
 
 	"github.com/machinebox/graphql"
-	"github.com/mgutz/ansi"
 )
 
 const BANNER = `
@@ -29,8 +29,12 @@ func printBanner() {
 }
 
 func main() {
+	printBanner()
+
 	var options = options.JuuriOptions{}
+	var printerType string
 	flag.BoolVar(&options.Debug, "debug", false, "Debug logging")
+	flag.StringVar(&printerType, "output", "stdout", "Output type: currently only \"stdout\"")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
@@ -38,21 +42,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	printBanner()
-
 	client := graphql.NewClient(flag.Arg(0))
 
-	ansiGreen := ansi.ColorFunc("green+h")
-	ansiRed := ansi.ColorFunc("red+h")
+	printer := output.GetPrinter(printerType)
 
 	for _, check := range query.VulnChecks {
 		result := check.Check(client, options)
-		var resultAnsi string
 		if result {
-			resultAnsi = ansiGreen("VULNERABLE")
+			printer.PrintVulnFound(check.Describe())
 		} else {
-			resultAnsi = ansiRed("NOT VULNERABLE")
+			printer.PrintVulnNotFound(check.Describe())
 		}
-		fmt.Printf("%s %s\n", resultAnsi, check.Describe())
 	}
 }
