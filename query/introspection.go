@@ -100,7 +100,7 @@ func (q IntrospectionQuery) Check(client *graphql.Client, options options.JuuriO
 
 	if err := client.Run(context.Background(), req, &resp); err != nil {
 		if options.Debug {
-			fmt.Printf("Error in %s: %s", q.Describe(), err.Error())
+			fmt.Printf("Error in %s: %s\n", q.Describe(), err.Error())
 		}
 		return false
 	}
