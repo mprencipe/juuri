@@ -7,7 +7,7 @@ import (
 )
 
 type VulnCheck interface {
-	Check(client *graphql.Client, options options.JuuriOptions) bool
+	Check(client *graphql.Client, options options.JuuriOptions) (bool, string)
 	Describe() string
 }
 

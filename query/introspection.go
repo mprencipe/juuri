@@ -94,7 +94,7 @@ type IntrospectionQueryResponse struct {
 	} `json:"__schema"`
 }
 
-func (q IntrospectionQuery) Check(client *graphql.Client, options options.JuuriOptions) bool {
+func (q IntrospectionQuery) Check(client *graphql.Client, options options.JuuriOptions) (bool, string) {
 	var resp IntrospectionQueryResponse
 	req := graphql.NewRequest(q.query)
 
@@ -102,10 +102,10 @@ func (q IntrospectionQuery) Check(client *graphql.Client, options options.JuuriO
 		if options.Debug {
 			fmt.Printf("Error in %s: %s\n", q.Describe(), err.Error())
 		}
-		return false
+		return false, ""
 	}
 
-	return resp.Schema.Types != nil
+	return resp.Schema.Types != nil, ""
 }
 
 func (q IntrospectionQuery) Describe() string {

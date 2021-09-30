@@ -47,9 +47,12 @@ func main() {
 	printer := output.GetPrinter(printerType)
 
 	for _, check := range query.VulnChecks {
-		result := check.Check(client, options)
-		if result {
+		vulnerable, text := check.Check(client, options)
+		if vulnerable {
 			printer.PrintVulnFound(check.Describe())
+			if len(text) > 0 {
+				printer.Print(text)
+			}
 		} else {
 			printer.PrintVulnNotFound(check.Describe())
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"juuri/options"
+	"strings"
 
 	"github.com/machinebox/graphql"
 )
@@ -36,7 +37,7 @@ type MutationQueryResponse struct {
 	} `json:"__schema"`
 }
 
-func (q MutationQuery) Check(client *graphql.Client, options options.JuuriOptions) bool {
+func (q MutationQuery) Check(client *graphql.Client, options options.JuuriOptions) (bool, string) {
 	var resp MutationQueryResponse
 	req := graphql.NewRequest(q.query)
 
@@ -46,7 +47,12 @@ func (q MutationQuery) Check(client *graphql.Client, options options.JuuriOption
 		}
 	}
 
-	return resp.Schema.MutationType != nil
+	var b strings.Builder
+	for _, s := range resp.Schema.MutationType.Fields {
+		b.WriteString(s.Name + "\n")
+	}
+
+	return resp.Schema.MutationType != nil, b.String()
 }
 
 func (q MutationQuery) Describe() string {
