@@ -1,5 +1,6 @@
 package options
 
 type JuuriOptions struct {
-	Debug bool
+	Debug                      bool
+	OpenIntrospectionInVoyager bool
 }

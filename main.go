@@ -6,7 +6,10 @@ import (
 	"juuri/options"
 	"juuri/output"
 	"juuri/query"
+	"net/url"
 	"os"
+	"os/exec"
+	"runtime"
 
 	"github.com/machinebox/graphql"
 )
@@ -18,6 +21,8 @@ const BANNER = `
  __/ /\_,_/\_,_/_/ /_/
 |___/
 `
+
+const VOYAGER_URL = "http://apis.guru/graphql-voyager/?url="
 
 func usage() {
 	fmt.Println("juuri OPTIONS <url>")
@@ -34,6 +39,7 @@ func main() {
 	var options = options.JuuriOptions{}
 	var printerType string
 	flag.BoolVar(&options.Debug, "debug", false, "Debug logging")
+	flag.BoolVar(&options.OpenIntrospectionInVoyager, "open-in-voyager", false, "Open introspection result in GraphQL Voyager")
 	flag.StringVar(&printerType, "output", "stdout", "Output type: currently only \"stdout\"")
 	flag.Usage = usage
 	flag.Parse()
@@ -41,8 +47,13 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+	urlArg := flag.Arg(0)
+	_, err := url.ParseRequestURI(urlArg)
+	if err != nil {
+		panic("Invalid URL " + urlArg)
+	}
 
-	client := graphql.NewClient(flag.Arg(0))
+	client := graphql.NewClient(urlArg)
 
 	printer := output.GetPrinter(printerType)
 
@@ -55,6 +66,26 @@ func main() {
 			}
 		} else {
 			printer.PrintVulnNotFound(check.Describe())
+		}
+	}
+
+	if options.OpenIntrospectionInVoyager {
+		fullVoyagerUrl := VOYAGER_URL + urlArg
+
+		fmt.Println("Opening API in GraphQL Voyager")
+		var browserErr error
+		switch runtime.GOOS {
+		case "linux":
+			browserErr = exec.Command("xdg-open", fullVoyagerUrl).Start()
+		case "windows":
+			browserErr = exec.Command("rundll32", "url.dll,FileProtocolHandler", fullVoyagerUrl).Start()
+		case "darwin":
+			browserErr = exec.Command("open", fullVoyagerUrl).Start()
+		default:
+			browserErr = fmt.Errorf("Unsupported platform")
+		}
+		if browserErr != nil {
+			fmt.Printf("Error opening browser for GraphQL Voyager: %s\n", browserErr.Error())
 		}
 	}
 }
