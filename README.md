@@ -18,7 +18,7 @@ Show debug messages
 ```
 -debug=true
 ```
-Choose output (currently only stdout)
+Output to file
 ```
--output=stdout
+-file=output.txt
 ```

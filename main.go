@@ -37,10 +37,9 @@ func main() {
 	printBanner()
 
 	var options = options.JuuriOptions{}
-	var printerType string
 	flag.BoolVar(&options.Debug, "debug", false, "Debug logging")
 	flag.BoolVar(&options.OpenIntrospectionInVoyager, "open-in-voyager", false, "Open introspection result in GraphQL Voyager")
-	flag.StringVar(&printerType, "output", "stdout", "Output type: currently only \"stdout\"")
+	flag.StringVar(&options.File, "file", "", "Output file")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
@@ -55,7 +54,13 @@ func main() {
 
 	client := graphql.NewClient(urlArg)
 
-	printer := output.GetPrinter(printerType)
+	var printer output.Printer
+	if len(options.File) > 0 {
+		printer = output.FileOutPrinter
+	} else {
+		printer = output.StdOutPrinter
+	}
+	printer.Init(&options)
 
 	for _, check := range query.VulnChecks {
 		vulnerable, text := check.Check(client, options)
@@ -68,6 +73,7 @@ func main() {
 			printer.PrintVulnNotFound(check.Describe())
 		}
 	}
+	printer.Stop()
 
 	if options.OpenIntrospectionInVoyager {
 		fullVoyagerUrl := VOYAGER_URL + urlArg
