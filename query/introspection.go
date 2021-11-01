@@ -97,7 +97,7 @@ type IntrospectionQueryResponse struct {
 func (q IntrospectionQuery) Check(client *graphql.Client, options options.JuuriOptions) (bool, string) {
 	var resp IntrospectionQueryResponse
 	req := graphql.NewRequest(q.query)
-
+	setGraphQLRequestHeaders(req, options.Headers, options.Debug)
 	if err := client.Run(context.Background(), req, &resp); err != nil {
 		if options.Debug {
 			fmt.Printf("Error in %s: %s\n", q.Describe(), err.Error())

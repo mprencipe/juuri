@@ -40,7 +40,7 @@ type MutationQueryResponse struct {
 func (q MutationQuery) Check(client *graphql.Client, options options.JuuriOptions) (bool, string) {
 	var resp MutationQueryResponse
 	req := graphql.NewRequest(q.query)
-
+	setGraphQLRequestHeaders(req, options.Headers, options.Debug)
 	if err := client.Run(context.Background(), req, &resp); err != nil {
 		if options.Debug {
 			fmt.Printf("Error in %s: %s", q.Describe(), err.Error())

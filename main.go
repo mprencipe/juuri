@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/machinebox/graphql"
 )
@@ -33,15 +34,29 @@ func printBanner() {
 	fmt.Println(BANNER)
 }
 
+func parseHeaders(headersStr string) map[string]string {
+	headerMap := map[string]string{}
+	headers := strings.Split(headersStr, ",")
+	for _, header := range headers {
+		headerNameValue := strings.Split(header, ":")
+		headerMap[headerNameValue[0]] = headerNameValue[1]
+
+	}
+	return headerMap
+}
+
 func main() {
 	printBanner()
 
 	var options = options.JuuriOptions{}
+	var headers string
 	flag.BoolVar(&options.Debug, "debug", false, "Debug logging")
 	flag.BoolVar(&options.OpenIntrospectionInVoyager, "open-in-voyager", false, "Open introspection result in GraphQL Voyager")
 	flag.StringVar(&options.File, "file", "", "Output file")
+	flag.StringVar(&headers, "headers", "", "List of HTTP headers separated by comma, e.g. headers=accept-encoding:gzip,content-type:application/json")
 	flag.Usage = usage
 	flag.Parse()
+	options.Headers = parseHeaders(headers)
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
