@@ -2,16 +2,15 @@ package query
 
 import (
 	"juuri/options"
-
-	"github.com/machinebox/graphql"
 )
 
 type VulnCheck interface {
-	Check(client *graphql.Client, options options.JuuriOptions) (bool, string)
+	Check(url string, options options.JuuriOptions) (bool, string)
 	Describe() string
 }
 
 var VulnChecks = []VulnCheck{
 	MutationCheck,
 	IntrospectionCheck,
+	BatchingCheck,
 }

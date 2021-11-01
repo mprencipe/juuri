@@ -37,7 +37,8 @@ type MutationQueryResponse struct {
 	} `json:"__schema"`
 }
 
-func (q MutationQuery) Check(client *graphql.Client, options options.JuuriOptions) (bool, string) {
+func (q MutationQuery) Check(url string, options options.JuuriOptions) (bool, string) {
+	client := graphql.NewClient(url)
 	var resp MutationQueryResponse
 	req := graphql.NewRequest(q.query)
 	setGraphQLRequestHeaders(req, options.Headers, options.Debug)
@@ -47,12 +48,15 @@ func (q MutationQuery) Check(client *graphql.Client, options options.JuuriOption
 		}
 	}
 
-	var b strings.Builder
-	for _, s := range resp.Schema.MutationType.Fields {
-		b.WriteString(s.Name + "\n")
+	if resp == (MutationQueryResponse{}) {
+		return false, ""
 	}
 
-	return resp.Schema.MutationType != nil, b.String()
+	mutations := make([]string, 0)
+	for _, field := range resp.Schema.MutationType.Fields {
+		mutations = append(mutations, field.Name)
+	}
+	return true, strings.Join(mutations, ", ")
 }
 
 func (q MutationQuery) Describe() string {

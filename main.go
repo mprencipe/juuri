@@ -11,8 +11,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-
-	"github.com/machinebox/graphql"
 )
 
 const BANNER = `
@@ -56,7 +54,9 @@ func main() {
 	flag.StringVar(&headers, "headers", "", "List of HTTP headers separated by comma, e.g. headers=accept-encoding:gzip,content-type:application/json")
 	flag.Usage = usage
 	flag.Parse()
-	options.Headers = parseHeaders(headers)
+	if len(headers) > 0 {
+		options.Headers = parseHeaders(headers)
+	}
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
@@ -67,8 +67,6 @@ func main() {
 		panic("Invalid URL " + urlArg)
 	}
 
-	client := graphql.NewClient(urlArg)
-
 	var printer output.Printer
 	if len(options.File) > 0 {
 		printer = output.FileOutPrinter
@@ -78,7 +76,7 @@ func main() {
 	printer.Init(&options)
 
 	for _, check := range query.VulnChecks {
-		vulnerable, text := check.Check(client, options)
+		vulnerable, text := check.Check(urlArg, options)
 		if vulnerable {
 			printer.PrintVulnFound(check.Describe())
 			if len(text) > 0 {

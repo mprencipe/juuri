@@ -94,7 +94,8 @@ type IntrospectionQueryResponse struct {
 	} `json:"__schema"`
 }
 
-func (q IntrospectionQuery) Check(client *graphql.Client, options options.JuuriOptions) (bool, string) {
+func (q IntrospectionQuery) Check(url string, options options.JuuriOptions) (bool, string) {
+	client := graphql.NewClient(url)
 	var resp IntrospectionQueryResponse
 	req := graphql.NewRequest(q.query)
 	setGraphQLRequestHeaders(req, options.Headers, options.Debug)
